@@ -12,7 +12,8 @@ export const products = [
     imagem: "",
     disponibilidade: true,
     badge: "🔥 Oferta Especial",
-    destaque: true
+    destaque: true,
+    estoque: 12
   },
   {
     id: "netflix-30-4-disp",
@@ -27,7 +28,8 @@ export const products = [
     imagem: "",
     disponibilidade: true,
     badge: "⚡ Promoção",
-    destaque: true
+    destaque: true,
+    estoque: 8
   },
   {
     id: "unitv-2-disp",
@@ -42,7 +44,8 @@ export const products = [
     imagem: "",
     disponibilidade: true,
     badge: "🎁 Melhor Oferta",
-    destaque: true
+    destaque: true,
+    estoque: 15
   },
   {
     id: "youcine-1-disp",
@@ -57,7 +60,8 @@ export const products = [
     imagem: "",
     disponibilidade: true,
     badge: "",
-    destaque: true
+    destaque: true,
+    estoque: 20
   },
   {
     id: "spotify-premium-1m",
@@ -72,6 +76,7 @@ export const products = [
     imagem: "",
     disponibilidade: true,
     badge: "⚡ Promoção",
-    destaque: true
+    destaque: true,
+    estoque: 10
   }
 ];

@@ -95,9 +95,9 @@
 .float-card { position: absolute; border-radius: var(--radius); background: var(--bg-card); border: 1px solid var(--border-strong); box-shadow: var(--shadow-card); padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 0.85rem; animation: floaty 6s ease-in-out infinite; }
 .float-card .fc-ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-size: 1.1rem; }
 .float-card small { display: block; color: var(--text-muted); font-weight: 500; font-size: 0.72rem; }
-.fc-1 { top: 6%; left: 8%; animation-delay: 0s; }
-.fc-2 { top: 40%; right: 4%; animation-delay: 1.4s; }
-.fc-3 { bottom: 6%; left: 18%; animation-delay: 2.6s; }
+.fc-1 { top: 6%; left: 8%; }
+.fc-2 { top: 40%; right: 4%; }
+.fc-3 { bottom: 6%; left: 18%; }
 
 /* ============ CATEGORIAS ============ */
 .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
@@ -120,8 +120,8 @@
 /* ============ PRODUTOS ============ */
 .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
 
-.product-card { position: relative; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; height: 100%; transition: transform 0.22s, border-color 0.22s, box-shadow 0.22s; }
-.product-card:hover { transform: translateY(-6px); border-color: var(--accent-color); box-shadow: 0 18px 40px -18px var(--glow); }
+.product-card { position: relative; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; height: 100%; transition: border-color 0.25s, box-shadow 0.25s; }
+.product-card:hover { border-color: var(--accent-color); box-shadow: 0 12px 30px -12px var(--glow); }
 .product-image-wrapper { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: linear-gradient(135deg, #1a1a24, #101018); }
 .product-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s; }
 .brand-tile { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; }
@@ -143,6 +143,17 @@
 .product-price-container { display: flex; align-items: baseline; gap: 0.55rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
 .price-original { color: var(--text-muted); text-decoration: line-through; font-size: 0.85rem; }
 .price-promo { font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+
+/* Indicador de estoque */
+.stock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.stock-available { color: var(--success); }
+.stock-out { color: var(--danger); }
 
 /* ============ COMO FUNCIONA ============ */
 .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }

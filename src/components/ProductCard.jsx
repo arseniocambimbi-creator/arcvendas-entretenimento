@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Clock, MonitorSmartphone, Zap } from 'lucide-react';
+import { ShoppingCart, Clock, MonitorSmartphone, Zap, Package } from 'lucide-react';
 import { formatCurrency, discountPercent } from '../lib/format';
 import BrandTile from './BrandTile';
 
 export default function ProductCard({ product }) {
   const desconto = discountPercent(product.preco_original, product.preco_promocional);
+  const estoque = product.estoque ?? 0;
+  const emEstoque = estoque > 0;
 
   return (
     <div className="product-card">
@@ -28,14 +30,30 @@ export default function ProductCard({ product }) {
           {product.dispositivos && <span className="meta-pill"><MonitorSmartphone size={13} /> {product.dispositivos}</span>}
         </div>
 
+        {/* Indicador de estoque */}
+        <div className="stock-indicator" style={{ marginBottom: '0.75rem' }}>
+          <Package size={14} />
+          {emEstoque ? (
+            <span className="stock-available">{estoque} disponível{estoque > 1 ? 'eis' : ''}</span>
+          ) : (
+            <span className="stock-out">Esgotado</span>
+          )}
+        </div>
+
         <div className="product-price-container">
           <span className="price-promo">{formatCurrency(product.preco_promocional)}</span>
           {desconto > 0 && <span className="price-original">{formatCurrency(product.preco_original)}</span>}
         </div>
 
-        <Link to={`/produto/${product.slug}`} className="btn-primary w-full">
-          <ShoppingCart size={17} /> Comprar agora
-        </Link>
+        {emEstoque ? (
+          <Link to={`/produto/${product.slug}`} className="btn-primary w-full">
+            <ShoppingCart size={17} /> Comprar agora
+          </Link>
+        ) : (
+          <button className="btn-primary w-full" disabled>
+            Esgotado
+          </button>
+        )}
       </div>
     </div>
   );
