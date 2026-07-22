@@ -7,7 +7,7 @@ import { categories } from '../data/categories';
 import { getCatalog } from '../lib/store';
 import { discountPercent, normalize } from '../lib/format';
 import banner1 from '../assets/banner1.png';
-import banner2 from '../assets/banner2.png';
+import banner2 from '../assets/banner2.mp4';
 
 const DEFAULT_SETTINGS = {
   hero_title: 'Entretenimento digital. Simples, rápido e em Kz.',
@@ -233,7 +233,15 @@ export default function Home() {
       {/* BANNER 2 (FUNDO) */}
       <div className="container mt-8 mb-12">
         <div className="banner-wrapper glass rounded-xl overflow-hidden">
-          <img src={banner2} alt="Banner Rodapé" className="w-full" style={{ display: 'block', height: 'auto', maxHeight: '320px', objectFit: 'cover' }} />
+          <video 
+            src={banner2} 
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="w-full" 
+            style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '360px', objectFit: 'cover' }}
+          />
         </div>
       </div>
     </div>
