@@ -89,37 +89,19 @@ export default function Home() {
 
   return (
     <div className="animate-fade-in">
-      {/* BANNER 1 (TOPO) */}
-      <div className="container mt-4">
-        <div className="banner-wrapper glass rounded-xl overflow-hidden">
-          <img src={banner1} alt="Ofertas Especiais Topo" className="w-full" style={{ display: 'block', height: 'auto', maxHeight: '420px', objectFit: 'cover' }} />
-        </div>
-      </div>
-
-      {/* HERO */}
+      {/* HERO com BANNER 1 como fundo */}
       {settings.banner_ativo !== false && (
-        <section className="hero">
-          <div className="container">
-            <div className="hero-grid">
-              <div>
-                <span className="hero-eyebrow"><Sparkles size={14} /> Recargas digitais · Angola</span>
-                <h1 className="hero-title">{settings.hero_title}</h1>
-                <p className="hero-subtitle">{settings.hero_subtitle}</p>
-                <div className="hero-ctas">
-                  <a href="#catalogo" className="btn-primary text-lg">Explorar produtos <ArrowRight size={18} /></a>
-                  <a href="#ofertas" className="btn-ghost text-lg">Ver ofertas</a>
-                </div>
+        <section className="hero hero-with-banner" style={{ backgroundImage: `url(${banner1})` }}>
+          <div className="hero-banner-overlay" />
+          <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ maxWidth: '640px' }}>
+              <span className="hero-eyebrow"><Sparkles size={14} /> Recargas digitais · Angola</span>
+              <h1 className="hero-title">{settings.hero_title}</h1>
+              <p className="hero-subtitle">{settings.hero_subtitle}</p>
+              <div className="hero-ctas">
+                <a href="#catalogo" className="btn-primary text-lg">Explorar produtos <ArrowRight size={18} /></a>
+                <a href="#ofertas" className="btn-ghost text-lg">Ver ofertas</a>
               </div>
-              {settings.hero_image ? (
-                <img src={settings.hero_image} alt="" className="hero-banner-img" />
-              ) : (
-                <div className="hero-visual" aria-hidden="true">
-                  <div className="hero-glow" />
-                  <div className="float-card fc-1"><span className="fc-ic" style={{ background: 'rgba(229,9,20,.15)' }}>🎬</span><span>Netflix<small>45 dias</small></span></div>
-                  <div className="float-card fc-2"><span className="fc-ic" style={{ background: 'rgba(30,215,96,.15)' }}>🎵</span><span>Spotify<small>Premium</small></span></div>
-                  <div className="float-card fc-3"><span className="fc-ic" style={{ background: 'rgba(43,143,214,.18)' }}>📺</span><span>UniTV<small>TV + canais</small></span></div>
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -180,7 +162,7 @@ export default function Home() {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section id="como-funciona" className="section" style={{ background: 'var(--bg-color-secondary)' }}>
+      <section id="como-funciona" className="section" style={{ background: 'rgba(15, 17, 21, 0.85)' }}>
         <div className="container">
           <div className="section-head text-center">
             <h2 className="section-title" style={{ justifyContent: 'center' }}>Como funciona</h2>
@@ -229,21 +211,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* BANNER 2 (FUNDO) */}
-      <div className="container mt-8 mb-12">
-        <div className="banner-wrapper glass rounded-xl overflow-hidden">
-          <video 
-            src={banner2} 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="w-full" 
-            style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '360px', objectFit: 'cover' }}
-          />
-        </div>
-      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import ProductDetails from './pages/ProductDetails';
 import Admin from './pages/Admin';
+import banner2Video from './assets/banner2.mp4';
 import './App.css';
 
 // Scroll to top on route change (respeita âncoras #secção)
@@ -25,6 +26,19 @@ function ScrollToTop() {
 function App() {
   return (
     <div className="app-container">
+      {/* VÍDEO DE FUNDO — COBRE TODO O SITE */}
+      <div className="video-bg-wrapper">
+        <video
+          src={banner2Video}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="video-bg"
+        />
+        <div className="video-bg-overlay" />
+      </div>
+
       <ScrollToTop />
       <Header />
       <main className="main-content">

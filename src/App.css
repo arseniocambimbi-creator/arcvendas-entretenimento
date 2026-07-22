@@ -1,4 +1,50 @@
-.app-container { display: flex; flex-direction: column; min-height: 100vh; }
+/* ============ VÍDEO DE FUNDO GLOBAL ============ */
+.video-bg-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+.video-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 12, 0.82);
+  backdrop-filter: blur(2px);
+}
+
+/* ============ HERO COM BANNER DE FUNDO ============ */
+.hero-with-banner {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  padding: 4rem 0;
+}
+.hero-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(8, 8, 12, 0.75) 0%, rgba(8, 8, 12, 0.45) 50%, rgba(8, 8, 12, 0.7) 100%);
+  z-index: 1;
+}
+.hero-with-banner .hero-title {
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+}
+.hero-with-banner .hero-subtitle {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+}
+
+.app-container { display: flex; flex-direction: column; min-height: 100vh; position: relative; z-index: 1; }
 .main-content { flex: 1; }
 .section { padding: 3.5rem 0; }
 .section-tight { padding: 2rem 0; }
