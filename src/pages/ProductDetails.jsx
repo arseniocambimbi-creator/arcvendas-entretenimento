@@ -149,7 +149,7 @@ export default function ProductDetails() {
                   <div className="form-group">
                     <p className="text-sm text-secondary mb-4">* Pagamento processado de forma segura. Assim que for confirmado, a tua recarga é entregue automaticamente por e-mail{formData.telefone ? ' e WhatsApp' : ''}.</p>
                     <button type="submit" className="btn-primary w-full text-lg" style={{ padding: '0.85rem' }} disabled={phase === 'submitting'}>
-                      {phase === 'submitting' ? <><Loader2 size={20} className="animate-spin" /> A processar…</> : <><Send size={20} /> Pagar {formatCurrency(product.preco_promocional)}</>}
+                      {phase === 'submitting' ? <><Loader2 size={20} className="animate-spin" /> Por favor aguarde, o seu pedido está a ser processado...</> : <><Send size={20} /> Pagar {formatCurrency(product.preco_promocional)}</>}
                     </button>
                   </div>
                 </form>
