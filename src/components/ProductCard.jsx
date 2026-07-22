@@ -1,38 +1,40 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Clock, MonitorSmartphone, Zap } from 'lucide-react';
+import { formatCurrency, discountPercent } from '../lib/format';
+import BrandTile from './BrandTile';
 
 export default function ProductCard({ product }) {
-  // Format currency
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value).replace('AOA', 'Kz');
-  };
+  const desconto = discountPercent(product.preco_original, product.preco_promocional);
 
   return (
     <div className="product-card">
       <div className="product-image-wrapper">
-        <img src={product.imagem} alt={product.name} className="product-image" loading="lazy" />
-        {product.badge && (
-          <span className="product-badge">{product.badge}</span>
-        )}
+        {product.imagem
+          ? <img src={product.imagem} alt={product.name} className="product-image" loading="lazy" />
+          : <BrandTile product={product} />}
+        {product.badge && <span className="product-badge">{product.badge}</span>}
+        {desconto > 0 && <span className="discount-badge">-{desconto}%</span>}
+        {product.category && <span className="product-cat-tag">{product.category}</span>}
       </div>
+
       <div className="product-content">
         <h3 className="product-title">{product.name}</h3>
-        <p className="product-desc">{product.description.substring(0, 80)}...</p>
-        
+        <p className="product-desc">{product.description}</p>
+
+        <div className="product-meta">
+          <span className="meta-pill meta-recarga"><Zap size={13} /> Recarga digital</span>
+          {product.duracao && <span className="meta-pill"><Clock size={13} /> {product.duracao}</span>}
+          {product.dispositivos && <span className="meta-pill"><MonitorSmartphone size={13} /> {product.dispositivos}</span>}
+        </div>
+
         <div className="product-price-container">
           <span className="price-promo">{formatCurrency(product.preco_promocional)}</span>
-          <span className="price-original">{formatCurrency(product.preco_original)}</span>
+          {desconto > 0 && <span className="price-original">{formatCurrency(product.preco_original)}</span>}
         </div>
-        
-        <Link to={`/produto/${product.slug}`} className="btn-primary w-full mt-4">
-          <ShoppingCart size={18} />
-          Comprar agora
+
+        <Link to={`/produto/${product.slug}`} className="btn-primary w-full">
+          <ShoppingCart size={17} /> Comprar agora
         </Link>
       </div>
     </div>

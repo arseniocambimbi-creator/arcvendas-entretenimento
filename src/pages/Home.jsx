@@ -1,19 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { Shield, Zap, HeartHandshake, Loader2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Sparkles, ArrowRight, Zap, X, Search as SearchIcon } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { products as fallbackProducts } from '../data/products';
+import { categories } from '../data/categories';
 import { getCatalog } from '../lib/store';
+import { discountPercent, normalize } from '../lib/format';
+import banner1 from '../assets/banner1.png';
+import banner2 from '../assets/banner2.png';
 
 const DEFAULT_SETTINGS = {
-  hero_title: 'Os melhores presentes digitais, agora em Angola.',
-  hero_subtitle: 'Compra vales-presente, créditos digitais e entretenimento. Escolhe o teu produto, paga em Kz e desfruta da entrega rápida.',
+  hero_title: 'Entretenimento digital. Simples, rápido e em Kz.',
+  hero_subtitle: 'Encontra os teus gift cards, recargas e serviços digitais favoritos. Compra de forma simples e recebe suporte da ArcVendas Entretenimento.',
   hero_image: null,
   banner_ativo: true,
 };
 
+const TRUST = [
+  { emoji: '⚡', title: 'Atendimento rápido' },
+  { emoji: '🇦🇴', title: 'Feito para Angola' },
+  { emoji: '💳', title: 'Pagamento em Kz' },
+  { emoji: '🎁', title: 'Produtos digitais' },
+  { emoji: '💬', title: 'Suporte ArcVendas' },
+];
+
+const STEPS = [
+  { n: '1', title: 'Escolhe a tua recarga', desc: 'Navega pelo catálogo e seleciona o serviço que queres.' },
+  { n: '2', title: 'Faz o teu pedido', desc: 'Preenche os dados e escolhe o método de pagamento em Kz.' },
+  { n: '3', title: 'Recebe a tua recarga', desc: 'Após a confirmação, recebes o acesso automaticamente por e-mail.' },
+];
+
 export default function Home() {
   const [products, setProducts] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [params, setParams] = useSearchParams();
+
+  const busca = params.get('busca') || '';
+  const activeCat = params.get('cat') || '';
 
   useEffect(() => {
     let alive = true;
@@ -21,81 +44,198 @@ export default function Home() {
       .then(({ products, settings }) => {
         if (!alive) return;
         setProducts(products && products.length ? products : fallbackProducts);
-        if (settings) setSettings(settings);
+        if (settings && settings.hero_title) setSettings(settings);
       })
       .catch(() => { if (alive) setProducts(fallbackProducts); });
     return () => { alive = false; };
   }, []);
 
-  const list = products ?? [];
+  // Rola até ao catálogo quando há pesquisa ou categoria ativa.
+  useEffect(() => {
+    if (busca || activeCat) {
+      const el = document.getElementById('catalogo');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [busca, activeCat]);
+
+  const list = useMemo(() => products ?? [], [products]);
+
+  const filtered = useMemo(() => {
+    let r = list;
+    const catObj = categories.find(c => c.id === activeCat);
+    if (catObj?.especial === 'ofertas') r = r.filter(p => discountPercent(p.preco_original, p.preco_promocional) > 0);
+    else if (catObj?.slug) r = r.filter(p => normalize(p.category) === normalize(catObj.slug));
+    if (busca) {
+      const q = normalize(busca);
+      r = r.filter(p => normalize(`${p.name} ${p.description} ${p.category}`).includes(q));
+    }
+    return r;
+  }, [list, activeCat, busca]);
+
+  const ofertas = useMemo(
+    () => list
+      .filter(p => discountPercent(p.preco_original, p.preco_promocional) > 0)
+      .sort((a, b) => discountPercent(b.preco_original, b.preco_promocional) - discountPercent(a.preco_original, a.preco_promocional)),
+    [list],
+  );
+
+  const setCat = (id) => setParams(id ? { cat: id } : {});
+  const clearFilters = () => setParams({});
+
+  const activeCatObj = categories.find(c => c.id === activeCat);
+  const catalogTitle = busca
+    ? `Resultados para "${busca}"`
+    : activeCatObj ? activeCatObj.nome : 'Recargas em destaque';
 
   return (
     <div className="animate-fade-in">
-      {/* Hero Section */}
+      {/* BANNER 1 (TOPO) */}
+      <div className="container mt-4">
+        <div className="banner-wrapper glass rounded-xl overflow-hidden">
+          <img src={banner1} alt="Ofertas Especiais Topo" className="w-full" style={{ display: 'block', height: 'auto', maxHeight: '420px', objectFit: 'cover' }} />
+        </div>
+      </div>
+
+      {/* HERO */}
       {settings.banner_ativo !== false && (
         <section className="hero">
-          {settings.hero_image && (
-            <img src={settings.hero_image} alt="" className="hero-banner-img" />
-          )}
           <div className="container">
-            <h1 className="hero-title">{renderTitle(settings.hero_title)}</h1>
-            <p className="hero-subtitle">{settings.hero_subtitle}</p>
-            <div className="flex gap-4 justify-center">
-              <a href="#catalogo" className="btn-primary text-lg">Ver Catálogo</a>
+            <div className="hero-grid">
+              <div>
+                <span className="hero-eyebrow"><Sparkles size={14} /> Recargas digitais · Angola</span>
+                <h1 className="hero-title">{settings.hero_title}</h1>
+                <p className="hero-subtitle">{settings.hero_subtitle}</p>
+                <div className="hero-ctas">
+                  <a href="#catalogo" className="btn-primary text-lg">Explorar produtos <ArrowRight size={18} /></a>
+                  <a href="#ofertas" className="btn-ghost text-lg">Ver ofertas</a>
+                </div>
+              </div>
+              {settings.hero_image ? (
+                <img src={settings.hero_image} alt="" className="hero-banner-img" />
+              ) : (
+                <div className="hero-visual" aria-hidden="true">
+                  <div className="hero-glow" />
+                  <div className="float-card fc-1"><span className="fc-ic" style={{ background: 'rgba(229,9,20,.15)' }}>🎬</span><span>Netflix<small>45 dias</small></span></div>
+                  <div className="float-card fc-2"><span className="fc-ic" style={{ background: 'rgba(30,215,96,.15)' }}>🎵</span><span>Spotify<small>Premium</small></span></div>
+                  <div className="float-card fc-3"><span className="fc-ic" style={{ background: 'rgba(43,143,214,.18)' }}>📺</span><span>UniTV<small>TV + canais</small></span></div>
+                </div>
+              )}
             </div>
           </div>
         </section>
       )}
 
-      {/* Trust Section */}
-      <section className="container">
-        <div className="trust-grid">
-          <div className="trust-item glass">
-            <Zap size={32} className="trust-icon" />
-            <h3 className="trust-title">Atendimento Rápido</h3>
-            <p className="trust-desc">Acesso quase imediato após confirmação.</p>
+      {/* CATEGORIAS */}
+      <section id="categorias" className="section-tight">
+        <div className="container">
+          <div className="section-head">
+            <h2 className="section-title">Categorias</h2>
+            <p className="section-sub">Navega por tipo de recarga digital.</p>
           </div>
-          <div className="trust-item glass">
-            <Shield size={32} className="trust-icon" />
-            <h3 className="trust-title">Pagamento em Kz</h3>
-            <p className="trust-desc">Pague facilmente na nossa moeda local.</p>
-          </div>
-          <div className="trust-item glass">
-            <HeartHandshake size={32} className="trust-icon" />
-            <h3 className="trust-title">Compra Segura</h3>
-            <p className="trust-desc">Transações 100% protegidas e fiáveis.</p>
+          <div className="cat-grid">
+            {categories.map(c => (
+              <button key={c.id} className={`cat-card ${activeCat === c.id ? 'active' : ''}`} onClick={() => setCat(activeCat === c.id ? '' : c.id)}>
+                {c.brevemente && <span className="cat-soon">EM BREVE</span>}
+                <span className="cat-emoji">{c.emoji}</span>
+                <span className="cat-name">{c.nome}</span>
+                <span className="cat-desc">{c.desc}</span>
+              </button>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Products Catalog */}
-      <section id="catalogo" className="container mb-8">
-        <h2 className="text-3xl font-bold mb-8 text-center text-gradient">Nosso Catálogo</h2>
-        {products === null ? (
-          <div className="text-center text-secondary" style={{ padding: '3rem 0' }}>
-            <Loader2 size={32} className="animate-spin" style={{ margin: '0 auto' }} />
+      {/* CATÁLOGO / RESULTADOS */}
+      <section id="catalogo" className="section">
+        <div className="container">
+          <div className="section-head flex justify-between items-center" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <h2 className="section-title">{!busca && !activeCat && '🔥 '}{catalogTitle}</h2>
+              <p className="section-sub">{filtered.length} recarga{filtered.length === 1 ? '' : 's'} · entrega automática após o pagamento.</p>
+            </div>
+            {(busca || activeCat) && (
+              <button className="chip active" onClick={clearFilters}><X size={14} /> Limpar filtros</button>
+            )}
           </div>
-        ) : (
-          <div className="products-grid">
-            {list.map(product => (
-              <ProductCard key={product.id} product={product} />
+
+          {products === null ? (
+            <div className="text-center text-secondary" style={{ padding: '3rem 0' }}>A carregar…</div>
+          ) : filtered.length === 0 ? (
+            <div className="glass" style={{ padding: '3rem 1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
+              <SearchIcon size={30} style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }} />
+              <p style={{ fontWeight: 600, marginBottom: '0.35rem' }}>
+                {activeCatObj?.brevemente ? 'Em breve nesta categoria' : 'Nenhum produto encontrado'}
+              </p>
+              <p className="text-secondary text-sm">
+                {activeCatObj?.brevemente ? 'Estamos a preparar novas recargas. Volta em breve!' : 'Tenta outra pesquisa ou limpa os filtros.'}
+              </p>
+              <button className="btn-ghost mt-4" onClick={clearFilters} style={{ marginTop: '1.25rem' }}>Ver todas as recargas</button>
+            </div>
+          ) : (
+            <div className="products-grid">
+              {filtered.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* COMO FUNCIONA */}
+      <section id="como-funciona" className="section" style={{ background: 'var(--bg-color-secondary)' }}>
+        <div className="container">
+          <div className="section-head text-center">
+            <h2 className="section-title" style={{ justifyContent: 'center' }}>Como funciona</h2>
+            <p className="section-sub">Comprar a tua recarga digital nunca foi tão simples.</p>
+          </div>
+          <div className="steps-grid">
+            {STEPS.map(s => (
+              <div key={s.n} className="step-card">
+                <div className="step-num">{s.n}</div>
+                <div className="step-title">{s.title}</div>
+                <div className="step-desc">{s.desc}</div>
+              </div>
             ))}
           </div>
-        )}
+        </div>
       </section>
-    </div>
-  );
-}
 
-// Realça a última "frase" do título com o gradiente (após vírgula ou quebra).
-function renderTitle(title) {
-  if (!title) return null;
-  const idx = title.lastIndexOf(',');
-  if (idx === -1) return title;
-  return (
-    <>
-      {title.slice(0, idx + 1)}<br />
-      <span className="text-gradient">{title.slice(idx + 1).trim()}</span>
-    </>
+      {/* CONFIANÇA */}
+      <section className="section-tight">
+        <div className="container">
+          <div className="trust-grid">
+            {TRUST.map(t => (
+              <div key={t.title} className="trust-item">
+                <span className="trust-icon">{t.emoji}</span>
+                <span className="trust-title">{t.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* OFERTAS */}
+      {ofertas.length > 0 && (
+        <section id="ofertas" className="section">
+          <div className="container">
+            <div className="offers-banner mb-8">
+              <div>
+                <h3>🔥 Ofertas por tempo limitado</h3>
+                <p>Os melhores descontos em recargas digitais, pagos em Kz.</p>
+              </div>
+              <a href="#catalogo" className="btn-primary" onClick={() => setCat('ofertas')}><Zap size={17} /> Ver todas</a>
+            </div>
+            <div className="products-grid">
+              {ofertas.slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BANNER 2 (FUNDO) */}
+      <div className="container mt-8 mb-12">
+        <div className="banner-wrapper glass rounded-xl overflow-hidden">
+          <img src={banner2} alt="Banner Rodapé" className="w-full" style={{ display: 'block', height: 'auto', maxHeight: '320px', objectFit: 'cover' }} />
+        </div>
+      </div>
+    </div>
   );
 }

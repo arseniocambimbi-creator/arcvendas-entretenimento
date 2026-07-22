@@ -7,13 +7,17 @@ import ProductDetails from './pages/ProductDetails';
 import Admin from './pages/Admin';
 import './App.css';
 
-// Scroll to top on route change
+// Scroll to top on route change (respeita âncoras #secção)
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
+    if (hash) {
+      const el = document.getElementById(hash.slice(1));
+      if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
+    }
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [pathname, hash]);
 
   return null;
 }

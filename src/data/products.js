@@ -9,7 +9,7 @@ export const products = [
     preco_promocional: 27500,
     duracao: "45 dias",
     dispositivos: "4 dispositivos",
-    imagem: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&q=80&w=800",
+    imagem: "",
     disponibilidade: true,
     badge: "🔥 Oferta Especial",
     destaque: true
@@ -24,7 +24,7 @@ export const products = [
     preco_promocional: 17500,
     duracao: "30 dias",
     dispositivos: "Até 4 dispositivos",
-    imagem: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80&w=800",
+    imagem: "",
     disponibilidade: true,
     badge: "⚡ Promoção",
     destaque: true
@@ -39,7 +39,7 @@ export const products = [
     preco_promocional: 5999,
     duracao: "30 dias",
     dispositivos: "Até 2 dispositivos",
-    imagem: "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&q=80&w=800",
+    imagem: "",
     disponibilidade: true,
     badge: "🎁 Melhor Oferta",
     destaque: true
@@ -54,7 +54,7 @@ export const products = [
     preco_promocional: 4999,
     duracao: "30 dias",
     dispositivos: "1 dispositivo",
-    imagem: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=800",
+    imagem: "",
     disponibilidade: true,
     badge: "",
     destaque: true
@@ -69,7 +69,7 @@ export const products = [
     preco_promocional: 5999,
     duracao: "1 mês",
     dispositivos: "1 conta",
-    imagem: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=800",
+    imagem: "",
     disponibilidade: true,
     badge: "⚡ Promoção",
     destaque: true
