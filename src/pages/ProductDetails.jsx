@@ -132,7 +132,7 @@ export default function ProductDetails() {
                     <input type="email" id="email" name="email" className="input-field" placeholder="seu.email@exemplo.com" required value={formData.email} onChange={handleInputChange} />
                   </div>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="telefone">Telefone / WhatsApp {method.needsPhone ? '' : '(opcional)'}</label>
+                    <label className="form-label" htmlFor="telefone">Telefone {method.needsPhone ? '' : '(opcional)'}</label>
                     <input type="tel" id="telefone" name="telefone" className="input-field" placeholder="9XX XXX XXX" required={method.needsPhone} value={formData.telefone} onChange={handleInputChange} />
                     <p className="text-sm text-secondary" style={{ marginTop: '.4rem' }}>Recebes também os dados de acesso por aqui.</p>
                   </div>
@@ -147,7 +147,7 @@ export default function ProductDetails() {
                     </select>
                   </div>
                   <div className="form-group">
-                    <p className="text-sm text-secondary mb-4">* Pagamento processado de forma segura. Assim que for confirmado, a tua recarga é entregue automaticamente por e-mail{formData.telefone ? ' e WhatsApp' : ''}.</p>
+                    <p className="text-sm text-secondary mb-4">* Pagamento processado de forma segura. Assim que for confirmado, a tua recarga é entregue automaticamente por e-mail.</p>
                     <button type="submit" className="btn-primary w-full text-lg" style={{ padding: '0.85rem' }} disabled={phase === 'submitting'}>
                       {phase === 'submitting' ? <><Loader2 size={20} className="animate-spin" /> Por favor aguarde, o seu pedido está a ser processado...</> : <><Send size={20} /> Pagar {formatCurrency(product.preco_promocional)}</>}
                     </button>
@@ -203,7 +203,7 @@ function DeliveredPanel({ product, credential, channels }) {
         <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--accent-color)', fontSize: '.95rem' }}>{credential || '—'}</pre>
         {credential && (<button onClick={copy} className="btn-primary" style={{ position: 'absolute', top: '.5rem', right: '.5rem', padding: '.4rem .7rem', fontSize: '.8rem' }}><Copy size={14} /> {copied ? 'Copiado' : 'Copiar'}</button>)}
       </div>
-      <p className="text-sm text-secondary">Enviámos também para o teu e-mail{channels?.includes('whatsapp') ? ' e WhatsApp' : ''}.</p>
+      <p className="text-sm text-secondary">Enviámos também para o teu e-mail.</p>
       <Link to="/" className="btn-primary mt-4">Voltar ao Catálogo</Link>
     </div>
   );

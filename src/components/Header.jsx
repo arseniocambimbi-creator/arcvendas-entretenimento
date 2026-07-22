@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Video, Search, MessageCircle, Menu, X } from 'lucide-react';
-import { whatsappLink } from '../data/site';
+import { site } from '../data/site';
 import InstallButton from './InstallButton';
 
 const NAV = [
@@ -48,7 +48,7 @@ export default function Header() {
 
           <div className="header-actions">
             <InstallButton />
-            <a href={whatsappLink('Olá! Preciso de ajuda com a Gift AO.')} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ padding: '0.6rem 1rem' }}>
+            <a href={`mailto:${site.email}`} className="btn-ghost" style={{ padding: '0.6rem 1rem' }}>
               <MessageCircle size={17} /> <span className="hide-sm">Suporte</span>
             </a>
             <button className="icon-btn hamburger" onClick={() => setOpen(o => !o)} aria-label="Menu">
@@ -61,7 +61,7 @@ export default function Header() {
           {NAV.map(n => (
             <Link key={n.label} to={n.to} className="nav-link">{n.label}</Link>
           ))}
-          <a href={whatsappLink('Olá! Preciso de ajuda com a Gift AO.')} target="_blank" rel="noopener noreferrer" className="nav-link">Suporte</a>
+          <a href={`mailto:${site.email}`} className="nav-link">Suporte</a>
         </nav>
 
         {open && (
@@ -70,7 +70,7 @@ export default function Header() {
               {NAV.map(n => (
                 <Link key={n.label} to={n.to} className="nav-link" onClick={() => setOpen(false)}>{n.label}</Link>
               ))}
-              <a href={whatsappLink('Olá! Preciso de ajuda com a Gift AO.')} target="_blank" rel="noopener noreferrer" className="nav-link" onClick={() => setOpen(false)}>Suporte</a>
+              <a href={`mailto:${site.email}`} className="nav-link" onClick={() => setOpen(false)}>Suporte</a>
             </nav>
           </div>
         )}
