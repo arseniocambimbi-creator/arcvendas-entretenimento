@@ -328,8 +328,6 @@ function ProductRow({ product, counts, token, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [creds, setCreds] = useState('');
-  const [stockItems, setStockItems] = useState(null);
-  const [loadingStock, setLoadingStock] = useState(false);
   const [link, setLink] = useState('');
   const pageUrl = `${window.location.origin}/produto/${product.slug}`;
 
@@ -362,51 +360,13 @@ function ProductRow({ product, counts, token, onSaved }) {
       setMsg(`+${r.added} adicionado ao stock ✓`);
       setCreds('');
       onSaved();
-      loadStockItems();
     } catch (e) { setMsg('Erro: ' + e.message); } finally { setSaving(false); }
-  };
-
-  const loadStockItems = async () => {
-    setLoadingStock(true);
-    try {
-      const r = await admin('list_stock', { product_id: product.id }, token);
-      setStockItems(r.items || []);
-    } catch {
-      setStockItems([]);
-    } finally { setLoadingStock(false); }
-  };
-
-  const deleteStockItem = async (itemId) => {
-    if (!window.confirm('Remover este item do stock?')) return;
-    setSaving(true); setMsg('');
-    try {
-      await admin('delete_stock', { item_id: itemId }, token);
-      setMsg('Item removido ✓');
-      onSaved();
-      loadStockItems();
-    } catch (e) { setMsg('Erro ao remover: ' + e.message); } finally { setSaving(false); }
-  };
-
-  const clearAllStock = async () => {
-    if (!window.confirm(`Tens a certeza que queres apagar TODO o stock de "${product.name}"?`)) return;
-    setSaving(true); setMsg('');
-    try {
-      await admin('clear_stock', { product_id: product.id }, token);
-      setMsg('Todo o stock foi removido ✓');
-      onSaved();
-      loadStockItems();
-    } catch (e) { setMsg('Erro ao limpar stock: ' + e.message); } finally { setSaving(false); }
   };
 
   const gerarLink = async () => {
     setMsg('');
     try { const r = await admin('checkout_link', { id: product.id }, token); setLink(r.checkout_url || ''); }
     catch (e) { setMsg('Erro ao gerar link: ' + e.message); }
-  };
-
-  const handleTabStock = () => {
-    setTab('stock');
-    if (stockItems === null) loadStockItems();
   };
 
   return (
@@ -443,7 +403,7 @@ function ProductRow({ product, counts, token, onSaved }) {
             <button
               className={tab === 'stock' ? 'btn-primary' : 'btn-ghost'}
               style={{ padding: '.4rem .9rem', fontSize: '.85rem' }}
-              onClick={handleTabStock}
+              onClick={() => setTab('stock')}
             >
               <PackageOpen size={14} /> Gerir Stock
             </button>
@@ -496,9 +456,23 @@ function ProductRow({ product, counts, token, onSaved }) {
             </div>
           )}
 
-          {/* TAB: Gerir Stock */}
           {tab === 'stock' && (
             <div>
+              {/* Resumo do stock */}
+              <div className="glass p-3 rounded-lg mb-4" style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                <label className="form-label" style={{ color: 'var(--accent-color)' }}>📋 Resumo do Stock</label>
+                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+                  <div>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#22c55e' }}>{counts.available}</span>
+                    <span className="text-secondary text-sm" style={{ marginLeft: '0.4rem' }}>disponíve{counts.available !== 1 ? 'is' : 'l'}</span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b' }}>{counts.sold}</span>
+                    <span className="text-secondary text-sm" style={{ marginLeft: '0.4rem' }}>vendido{counts.sold !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Adicionar stock */}
               <div className="glass p-3 rounded-lg mb-4" style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.2)' }}>
                 <label className="form-label" style={{ color: '#22c55e' }}>➕ Adicionar stock novo</label>
@@ -521,48 +495,10 @@ function ProductRow({ product, counts, token, onSaved }) {
                 </button>
               </div>
 
-              {/* Lista de stock atual */}
-              <div>
-                <div className="flex justify-between items-center mb-2" style={{ flexWrap: 'wrap', gap: 8 }}>
-                  <label className="form-label" style={{ margin: 0 }}>
-                    📋 Stock atual — {counts.available} disponíve{counts.available !== 1 ? 'is' : 'l'} · {counts.sold} vendido{counts.sold !== 1 ? 's' : ''}
-                  </label>
-                  <div className="flex gap-2">
-                    <button className="btn-ghost" onClick={loadStockItems} style={{ padding: '.3rem .7rem', fontSize: '.78rem' }}>
-                      <RefreshCw size={13} /> Recarregar
-                    </button>
-                    {counts.available > 0 && (
-                      <button
-                        className="btn-ghost"
-                        onClick={clearAllStock}
-                        disabled={saving}
-                        style={{ padding: '.3rem .7rem', fontSize: '.78rem', color: '#f87171', borderColor: 'rgba(248,113,113,0.4)' }}
-                      >
-                        <Trash2 size={13} /> Limpar tudo
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {loadingStock ? (
-                  <div className="text-center" style={{ padding: '1.5rem' }}>
-                    <Loader2 size={20} className="animate-spin" style={{ margin: '0 auto', color: 'var(--accent-color)' }} />
-                  </div>
-                ) : stockItems === null ? (
-                  <div className="text-center text-secondary text-sm" style={{ padding: '1rem' }}>
-                    A carregar itens de stock…
-                  </div>
-                ) : stockItems.length === 0 ? (
-                  <div className="glass text-center text-secondary text-sm" style={{ padding: '1.5rem', borderRadius: 'var(--radius)' }}>
-                    Nenhum item em stock. Adiciona credenciais acima.
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gap: '0.5rem', maxHeight: '320px', overflowY: 'auto', paddingRight: '4px' }}>
-                    {stockItems.map((item) => (
-                      <StockItem key={item.id} item={item} onDelete={() => deleteStockItem(item.id)} disabled={saving} />
-                    ))}
-                  </div>
-                )}
+              <div className="glass p-3 rounded-lg" style={{ background: 'rgba(248,113,113,0.04)', border: '1px solid rgba(248,113,113,0.15)' }}>
+                <p className="text-secondary text-sm">
+                  ⚠️ Para remover credenciais do stock, acede ao <strong>painel do Supabase</strong> → tabela <code>stock</code> e elimina os registos manualmente.
+                </p>
               </div>
             </div>
           )}
@@ -572,68 +508,6 @@ function ProductRow({ product, counts, token, onSaved }) {
   );
 }
 
-function StockItem({ item, onDelete, disabled }) {
-  const [visible, setVisible] = useState(false);
-  const isSold = item.status === 'sold';
-  return (
-    <div
-      className="flex items-center gap-2"
-      style={{
-        background: 'var(--bg-color-secondary)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--radius)',
-        padding: '.55rem .85rem',
-        fontSize: '.82rem',
-      }}
-    >
-      <span
-        style={{
-          fontFamily: 'monospace',
-          flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          color: isSold ? 'var(--text-muted)' : 'var(--text-primary)',
-          filter: visible ? 'none' : 'blur(5px)',
-          transition: 'filter 0.2s',
-          userSelect: visible ? 'auto' : 'none',
-        }}
-      >
-        {item.credential_data || item.credential || '—'}
-      </span>
-      <span
-        style={{
-          fontSize: '.72rem',
-          padding: '.2rem .5rem',
-          borderRadius: '6px',
-          fontWeight: 600,
-          flexShrink: 0,
-          background: isSold ? 'rgba(248,113,113,.15)' : 'rgba(34,197,94,.15)',
-          color: isSold ? '#f87171' : '#22c55e',
-        }}
-      >
-        {isSold ? 'Vendido' : 'Disponível'}
-      </span>
-      <button
-        onClick={() => setVisible(v => !v)}
-        title={visible ? 'Ocultar' : 'Mostrar'}
-        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0, padding: '2px' }}
-      >
-        {visible ? <EyeOff size={15} /> : <Eye size={15} />}
-      </button>
-      {!isSold && (
-        <button
-          onClick={onDelete}
-          disabled={disabled}
-          title="Remover este item"
-          style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', flexShrink: 0, padding: '2px' }}
-        >
-          <Trash2 size={15} />
-        </button>
-      )}
-    </div>
-  );
-}
 
 function OrdersSection({ orders }) {
   if (!orders?.length) return null;
