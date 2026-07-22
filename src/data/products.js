@@ -11,7 +11,7 @@ export const products = [
     dispositivos: "4 dispositivos",
     imagem: "",
     disponibilidade: true,
-    badge: "🔥 Oferta Especial",
+    badge: "Oferta Especial",
     destaque: true,
     estoque: 12
   },
@@ -27,7 +27,7 @@ export const products = [
     dispositivos: "Até 4 dispositivos",
     imagem: "",
     disponibilidade: true,
-    badge: "⚡ Promoção",
+    badge: "Promoção",
     destaque: true,
     estoque: 8
   },
@@ -43,7 +43,7 @@ export const products = [
     dispositivos: "Até 2 dispositivos",
     imagem: "",
     disponibilidade: true,
-    badge: "🎁 Melhor Oferta",
+    badge: "Melhor Oferta",
     destaque: true,
     estoque: 15
   },
@@ -75,7 +75,7 @@ export const products = [
     dispositivos: "1 conta",
     imagem: "",
     disponibilidade: true,
-    badge: "⚡ Promoção",
+    badge: "Promoção",
     destaque: true,
     estoque: 10
   }

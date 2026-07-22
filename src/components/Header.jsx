@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Video, Search, MessageCircle, Menu, X } from 'lucide-react';
 import { whatsappLink } from '../data/site';
+import InstallButton from './InstallButton';
 
 const NAV = [
   { label: 'Início', to: '/' },
@@ -46,7 +47,8 @@ export default function Header() {
           </form>
 
           <div className="header-actions">
-            <a href={whatsappLink('Olá! Preciso de ajuda com a Gift AO.')} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ padding: '0.6rem 1rem' }}>
+            <InstallButton />
+            <a href={whatsappLink('Olá! Preciso de ajuda com a Gift AO.')} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ padding: '0.6rem 1rem' }}>
               <MessageCircle size={17} /> <span className="hide-sm">Suporte</span>
             </a>
             <button className="icon-btn hamburger" onClick={() => setOpen(o => !o)} aria-label="Menu">

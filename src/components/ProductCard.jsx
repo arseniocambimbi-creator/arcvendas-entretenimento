@@ -34,7 +34,7 @@ export default function ProductCard({ product }) {
         <div className="stock-indicator" style={{ marginBottom: '0.75rem' }}>
           <Package size={14} />
           {emEstoque ? (
-            <span className="stock-available">{estoque} disponível{estoque > 1 ? 'eis' : ''}</span>
+            <span className="stock-available">Em stock · {estoque} disponíve{estoque === 1 ? 'l' : 'is'}</span>
           ) : (
             <span className="stock-out">Esgotado</span>
           )}

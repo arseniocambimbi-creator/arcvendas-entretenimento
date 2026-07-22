@@ -105,7 +105,7 @@
 .cat-card:hover { transform: translateY(-4px); border-color: var(--accent-color); }
 .cat-card::after { content: ''; position: absolute; right: -30px; top: -30px; width: 120px; height: 120px; border-radius: 50%; opacity: 0.18; filter: blur(6px); background: var(--grad); transition: opacity 0.2s; }
 .cat-card:hover::after { opacity: 0.32; }
-.cat-emoji { font-size: 1.9rem; display: block; margin-bottom: 0.7rem; }
+.cat-emoji { display: inline-flex; color: var(--accent-color); margin-bottom: 0.7rem; position: relative; }
 .cat-name { display: block; font-weight: 700; font-size: 1.05rem; position: relative; }
 .cat-desc { display: block; color: var(--text-secondary); font-size: 0.82rem; margin-top: 0.2rem; position: relative; }
 .cat-card.active { border-color: var(--accent-color); background: var(--bg-card-hover); }
@@ -165,7 +165,7 @@
 /* ============ CONFIANÇA ============ */
 .trust-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.9rem; }
 .trust-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; padding: 1.3rem 0.9rem; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); }
-.trust-icon { font-size: 1.5rem; }
+.trust-icon { display: inline-flex; color: var(--accent-color); }
 .trust-title { font-weight: 600; font-size: 0.9rem; }
 
 /* ============ FAIXA OFERTAS ============ */

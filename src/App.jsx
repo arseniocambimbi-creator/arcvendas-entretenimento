@@ -1,12 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import ProductDetails from './pages/ProductDetails';
 import Admin from './pages/Admin';
-import banner2Video from './assets/banner2.mp4';
 import './App.css';
+
+// Vídeo de fundo (otimizado ~730KB) alojado no Supabase Storage (CDN).
+const BG_VIDEO = 'https://trdeibvrqqcbvvxbfrbp.supabase.co/storage/v1/object/public/assets/banner2-opt.mp4';
+
+// Só carrega o vídeo quando não prejudica o utilizador (movimento/dados/rede lenta).
+function deveMostrarVideo() {
+  if (typeof window === 'undefined') return false;
+  const reduz = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const c = navigator.connection || {};
+  const lenta = /(^|-)2g$/.test(c.effectiveType || '');
+  return !reduz && !c.saveData && !lenta;
+}
 
 // Scroll to top on route change (respeita âncoras #secção)
 function ScrollToTop() {
@@ -24,18 +35,16 @@ function ScrollToTop() {
 }
 
 function App() {
+  const [showVideo, setShowVideo] = useState(false);
+  useEffect(() => { setShowVideo(deveMostrarVideo()); }, []);
+
   return (
     <div className="app-container">
-      {/* VÍDEO DE FUNDO — COBRE TODO O SITE */}
+      {/* Fundo global: vídeo leve quando adequado, senão fica o fundo escuro/gradiente. */}
       <div className="video-bg-wrapper">
-        <video
-          src={banner2Video}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="video-bg"
-        />
+        {showVideo && (
+          <video src={BG_VIDEO} autoPlay loop muted playsInline preload="auto" className="video-bg" />
+        )}
         <div className="video-bg-overlay" />
       </div>
 
