@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Lock, Loader2, Save, Plus, Link2, Copy, LogOut, RefreshCw, Trash2, ChevronDown, ChevronUp, PackageOpen, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Lock, Loader2, Save, Plus, Link2, Copy, LogOut, RefreshCw, Trash2, ChevronDown, ChevronUp, PackageOpen, Eye, EyeOff, Bell, BellOff, TrendingUp } from 'lucide-react';
 import { admin } from '../lib/store';
 
 const TOKEN_KEY = 'giftao_admin_token';
@@ -11,6 +11,9 @@ export default function Admin() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notifEnabled, setNotifEnabled] = useState(false);
+  const [lastOrderCount, setLastOrderCount] = useState(null);
+  const pollRef = useRef(null);
 
   const load = useCallback(async (tk) => {
     setLoading(true); setError('');
@@ -18,15 +21,57 @@ export default function Admin() {
       const res = await admin('overview', {}, tk);
       setData(res); setAuthed(true);
       sessionStorage.setItem(TOKEN_KEY, tk);
+      // Inicializa a contagem de pedidos para o polling
+      if (lastOrderCount === null) setLastOrderCount(res.orders?.length ?? 0);
     } catch (e) {
       setError(e.message === 'UNAUTHORIZED' ? 'Palavra-passe incorreta.' : 'Erro ao carregar. Tenta de novo.');
       setAuthed(false);
     } finally { setLoading(false); }
-  }, []);
+  }, [lastOrderCount]);
 
   useEffect(() => { if (token) load(token); }, []); // eslint-disable-line
 
-  const logout = () => { sessionStorage.removeItem(TOKEN_KEY); setToken(''); setAuthed(false); setData(null); };
+  // Polling de notificações a cada 60 segundos
+  useEffect(() => {
+    if (!authed || !notifEnabled) { clearInterval(pollRef.current); return; }
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await admin('overview', {}, token);
+        const newCount = res.orders?.length ?? 0;
+        if (lastOrderCount !== null && newCount > lastOrderCount) {
+          const diff = newCount - lastOrderCount;
+          const newest = res.orders?.[0];
+          if (Notification.permission === 'granted') {
+            new Notification('🛒 Nova compra na ArcVendas!', {
+              body: newest
+                ? `${newest.customer_name} comprou ${newest.product_name} — ${fmt(newest.amount)}`
+                : `${diff} novo${diff > 1 ? 's' : ''} pedido${diff > 1 ? 's' : ''} recebido${diff > 1 ? 's' : ''}!`,
+              icon: '/icon.svg',
+            });
+          }
+          setData(res);
+          setLastOrderCount(newCount);
+        } else if (newCount !== lastOrderCount) {
+          setLastOrderCount(newCount);
+        }
+      } catch { /* silencioso */ }
+    }, 60000);
+    return () => clearInterval(pollRef.current);
+  }, [authed, notifEnabled, token, lastOrderCount]);
+
+  const toggleNotifications = async () => {
+    if (notifEnabled) { setNotifEnabled(false); return; }
+    if (!('Notification' in window)) { alert('O teu browser não suporta notificações.'); return; }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      setNotifEnabled(true);
+      new Notification('✅ Notificações ativas!', { body: 'Vais receber alertas de novas compras na ArcVendas.', icon: '/icon.svg' });
+    } else {
+      alert('Permissão de notificação negada. Activa nas definições do browser.');
+    }
+  };
+
+  const logout = () => { clearInterval(pollRef.current); sessionStorage.removeItem(TOKEN_KEY); setToken(''); setAuthed(false); setData(null); setNotifEnabled(false); };
 
   if (!authed) {
     return (
@@ -55,10 +100,21 @@ export default function Admin() {
       <div className="flex justify-between items-center mb-6" style={{ flexWrap: 'wrap', gap: 12 }}>
         <h1 className="text-3xl font-bold text-gradient">Painel Admin</h1>
         <div className="flex gap-2">
+          <button
+            className={notifEnabled ? 'btn-primary' : 'btn-ghost'}
+            onClick={toggleNotifications}
+            title={notifEnabled ? 'Desativar notificações' : 'Ativar notificações de compra'}
+            style={{ padding: '.5rem .9rem' }}
+          >
+            {notifEnabled ? <><Bell size={16} /> Notificações ON</> : <><BellOff size={16} /> Ativar Notificações</>}
+          </button>
           <button className="btn-ghost" onClick={() => load(token)}><RefreshCw size={16} /> Atualizar</button>
           <button className="btn-ghost" onClick={logout}><LogOut size={16} /> Sair</button>
         </div>
       </div>
+
+      {/* Painel de estatísticas */}
+      <StatsPanel data={data} />
 
       <BannerSection settings={data.settings} token={token} onSaved={() => load(token)} />
 
@@ -76,6 +132,126 @@ export default function Admin() {
       </div>
 
       <OrdersSection orders={data.orders} />
+    </div>
+  );
+}
+
+// ============ PAINEL DE ESTATÍSTICAS ============
+function StatsPanel({ data }) {
+  const products = data?.products || [];
+  const orders = data?.orders || [];
+  const stockCounts = data?.stock_counts || {};
+
+  const totalVendidos = Object.values(stockCounts).reduce((s, c) => s + (c.sold || 0), 0);
+  const totalDisponiveis = Object.values(stockCounts).reduce((s, c) => s + (c.available || 0), 0);
+  const totalReceita = orders
+    .filter(o => ['paid', 'delivered', 'delivering'].includes(o.status))
+    .reduce((s, o) => s + (Number(o.amount) || 0), 0);
+
+  const maxVal = Math.max(...products.map(p => {
+    const c = stockCounts[p.id] || {};
+    return (c.available || 0) + (c.sold || 0);
+  }), 1);
+
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (6 - i));
+    const key = d.toISOString().slice(0, 10);
+    const label = d.toLocaleDateString('pt-PT', { weekday: 'short' });
+    const count = orders.filter(o => (o.created_at || '').slice(0, 10) === key).length;
+    return { label, count };
+  });
+  const maxDay = Math.max(...last7.map(d => d.count), 1);
+
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      {/* KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <KpiCard label="Receita total" value={new Intl.NumberFormat('pt-AO').format(totalReceita) + ' Kz'} color="#22c55e" emoji="💰" />
+        <KpiCard label="Pedidos" value={orders.length} color="var(--accent-color)" emoji="🛒" />
+        <KpiCard label="Itens vendidos" value={totalVendidos} color="#f59e0b" emoji="📦" />
+        <KpiCard label="Em stock" value={totalDisponiveis} color="var(--accent-light)" emoji="✅" />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        {/* Gráfico: stock vs vendas por produto */}
+        <div className="glass p-4 rounded-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp size={16} style={{ color: 'var(--accent-color)' }} />
+            <span className="font-semibold text-sm">Stock vs Vendas por produto</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {products.map(p => {
+              const c = stockCounts[p.id] || {};
+              const avail = c.available || 0;
+              const sold = c.sold || 0;
+              const total = avail + sold;
+              const shortName = (p.name || '').split('—')[0].split('|')[0].trim().slice(0, 20);
+              return (
+                <div key={p.id}>
+                  <div className="flex justify-between" style={{ fontSize: '.74rem', marginBottom: '3px' }}>
+                    <span className="text-secondary">{shortName}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{avail} disp. · {sold} vend.</span>
+                  </div>
+                  <div style={{ display: 'flex', height: '10px', borderRadius: '6px', overflow: 'hidden', background: 'var(--bg-color-secondary)' }}>
+                    {sold > 0 && (
+                      <div style={{ width: `${(sold / Math.max(total, maxVal)) * 100}%`, background: 'linear-gradient(90deg,#f59e0b,#f97316)', transition: 'width 0.6s ease' }} />
+                    )}
+                    {avail > 0 && (
+                      <div style={{ width: `${(avail / Math.max(total, maxVal)) * 100}%`, background: 'linear-gradient(90deg,#22c55e,#16a34a)', transition: 'width 0.6s ease' }} />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 mt-3" style={{ fontSize: '.72rem' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 10, height: 10, borderRadius: 3, background: '#f59e0b', display: 'inline-block' }} /> Vendido
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 10, height: 10, borderRadius: 3, background: '#22c55e', display: 'inline-block' }} /> Disponível
+            </span>
+          </div>
+        </div>
+
+        {/* Gráfico: pedidos últimos 7 dias */}
+        <div className="glass p-4 rounded-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp size={16} style={{ color: '#22c55e' }} />
+            <span className="font-semibold text-sm">Pedidos — últimos 7 dias</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '80px' }}>
+            {last7.map(({ label, count }) => (
+              <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '.65rem', color: 'var(--text-muted)', minHeight: '12px' }}>{count > 0 ? count : ''}</span>
+                <div
+                  style={{
+                    width: '100%',
+                    height: `${Math.max((count / maxDay) * 56, count > 0 ? 6 : 2)}px`,
+                    borderRadius: '4px 4px 0 0',
+                    background: count > 0 ? 'linear-gradient(180deg, var(--accent-color), var(--accent-2))' : 'var(--bg-color-secondary)',
+                    transition: 'height 0.5s ease',
+                  }}
+                />
+                <span style={{ fontSize: '.65rem', color: 'var(--text-muted)' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+          {orders.length === 0 && (
+            <p className="text-secondary text-sm text-center" style={{ marginTop: '0.5rem' }}>Sem pedidos ainda.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, color, emoji }) {
+  return (
+    <div className="glass p-4 rounded-lg" style={{ borderLeft: `3px solid ${color}` }}>
+      <div style={{ fontSize: '1.4rem', marginBottom: '0.2rem' }}>{emoji}</div>
+      <div style={{ fontSize: '1.35rem', fontWeight: 800, color, lineHeight: 1.1 }}>{value}</div>
+      <div className="text-secondary text-sm" style={{ marginTop: '0.2rem' }}>{label}</div>
     </div>
   );
 }
