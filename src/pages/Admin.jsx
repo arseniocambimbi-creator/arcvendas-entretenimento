@@ -329,7 +329,39 @@ function ProductRow({ product, counts, token, onSaved }) {
   const [msg, setMsg] = useState('');
   const [creds, setCreds] = useState('');
   const [link, setLink] = useState('');
+  const [stockList, setStockList] = useState(null);
+  const [loadingStock, setLoadingStock] = useState(false);
+  const [sel, setSel] = useState([]);
+  const [reveal, setReveal] = useState(false);
   const pageUrl = `${window.location.origin}/produto/${product.slug}`;
+
+  const carregarStock = useCallback(async () => {
+    setLoadingStock(true);
+    try {
+      const r = await admin('list_stock', { product_id: product.id }, token);
+      setStockList(r.stock || []);
+    } catch (e) { setMsg('Erro ao carregar stock: ' + e.message); }
+    finally { setLoadingStock(false); }
+  }, [product.id, token]);
+
+  // Carrega a lista quando o separador de stock é aberto.
+  useEffect(() => {
+    if (open && tab === 'stock' && stockList === null) carregarStock();
+  }, [open, tab, stockList, carregarStock]);
+
+  const removerStock = async (ids) => {
+    if (!ids.length) return;
+    const txt = ids.length === 1 ? 'esta credencial' : `estas ${ids.length} credenciais`;
+    if (!window.confirm(`Remover ${txt} do stock? Esta ação não pode ser desfeita.`)) return;
+    setSaving(true); setMsg('');
+    try {
+      const r = await admin('delete_stock', { stock_ids: ids }, token);
+      setMsg(`${r.removed} credencial(is) removida(s) do stock`);
+      setSel([]);
+      await carregarStock();
+      onSaved();
+    } catch (e) { setMsg('Erro: ' + e.message); } finally { setSaving(false); }
+  };
 
   const save = async () => {
     setSaving(true); setMsg('');
@@ -357,11 +389,14 @@ function ProductRow({ product, counts, token, onSaved }) {
     setSaving(true); setMsg('');
     try {
       const r = await admin('add_stock', { product_id: product.id, credentials: linhas }, token);
-      setMsg(`+${r.added} adicionado ao stock ✓`);
+      setMsg(`+${r.added} adicionado ao stock`);
       setCreds('');
+      await carregarStock();
       onSaved();
     } catch (e) { setMsg('Erro: ' + e.message); } finally { setSaving(false); }
   };
+
+  const disponiveis = (stockList || []).filter((s) => s.status === 'available');
 
   const gerarLink = async () => {
     setMsg('');
@@ -495,10 +530,100 @@ function ProductRow({ product, counts, token, onSaved }) {
                 </button>
               </div>
 
-              <div className="glass p-3 rounded-lg" style={{ background: 'rgba(248,113,113,0.04)', border: '1px solid rgba(248,113,113,0.15)' }}>
-                <p className="text-secondary text-sm">
-                  ⚠️ Para remover credenciais do stock, acede ao <strong>painel do Supabase</strong> → tabela <code>stock</code> e elimina os registos manualmente.
-                </p>
+              {/* Credenciais em stock — ver e remover */}
+              <div className="glass p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2" style={{ flexWrap: 'wrap', gap: 8 }}>
+                  <label className="form-label" style={{ margin: 0 }}>Credenciais em stock</label>
+                  <div className="flex gap-2 items-center">
+                    <button className="btn-ghost" style={miniBtn} onClick={() => setReveal(r => !r)}>
+                      {reveal ? <><EyeOff size={14} /> Ocultar</> : <><Eye size={14} /> Mostrar</>}
+                    </button>
+                    <button className="btn-ghost" style={miniBtn} onClick={carregarStock} disabled={loadingStock}>
+                      <RefreshCw size={14} /> Recarregar
+                    </button>
+                  </div>
+                </div>
+
+                {loadingStock && stockList === null ? (
+                  <p className="text-secondary text-sm">A carregar…</p>
+                ) : !stockList?.length ? (
+                  <p className="text-secondary text-sm">Sem credenciais neste produto. Adiciona stock acima.</p>
+                ) : (
+                  <>
+                    {disponiveis.length > 0 && (
+                      <div className="flex items-center gap-3 mb-2" style={{ flexWrap: 'wrap' }}>
+                        <label className="flex items-center gap-2 text-sm text-secondary" style={{ cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={sel.length === disponiveis.length && disponiveis.length > 0}
+                            onChange={(e) => setSel(e.target.checked ? disponiveis.map(s => s.id) : [])}
+                          />
+                          Selecionar todas as disponíveis
+                        </label>
+                        {sel.length > 0 && (
+                          <button
+                            className="btn-ghost"
+                            style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.4)' }}
+                            onClick={() => removerStock(sel)}
+                            disabled={saving}
+                          >
+                            <Trash2 size={14} /> Remover selecionadas ({sel.length})
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 320, overflowY: 'auto' }}>
+                      {stockList.map((s) => {
+                        const vendido = s.status !== 'available';
+                        return (
+                          <div
+                            key={s.id}
+                            className="flex items-center gap-2"
+                            style={{
+                              padding: '.5rem .6rem', borderRadius: 8,
+                              background: vendido ? 'rgba(245,158,11,0.06)' : 'var(--bg-color-secondary)',
+                              border: '1px solid var(--border-color)',
+                            }}
+                          >
+                            {!vendido ? (
+                              <input
+                                type="checkbox"
+                                checked={sel.includes(s.id)}
+                                onChange={(e) => setSel(p => e.target.checked ? [...p, s.id] : p.filter(x => x !== s.id))}
+                              />
+                            ) : <span style={{ width: 13, flexShrink: 0 }} />}
+
+                            <span style={{ flex: 1, fontFamily: 'monospace', fontSize: '.78rem', wordBreak: 'break-all' }}>
+                              {reveal ? s.credential : mascarar(s.credential)}
+                            </span>
+
+                            <span style={{ color: vendido ? '#f59e0b' : '#22c55e', whiteSpace: 'nowrap', fontSize: '.72rem', fontWeight: 600 }}>
+                              {vendido ? 'vendido' : 'disponível'}
+                            </span>
+
+                            {!vendido && (
+                              <button
+                                className="btn-ghost"
+                                style={{ ...miniBtn, padding: '.3rem .45rem' }}
+                                onClick={() => removerStock([s.id])}
+                                disabled={saving}
+                                title="Remover do stock"
+                                aria-label="Remover do stock"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-secondary" style={{ fontSize: '.75rem', marginTop: '.6rem' }}>
+                      As credenciais vendidas ficam como histórico das entregas e não podem ser removidas.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -577,3 +702,11 @@ function LinkRow({ label, url }) {
 const errBox = { background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.4)', color: '#fca5a5', padding: '.75rem 1rem', borderRadius: '.5rem', fontSize: '.9rem' };
 const th = { padding: '.5rem .5rem', fontWeight: 600 };
 const td = { padding: '.5rem .5rem', verticalAlign: 'top' };
+const miniBtn = { padding: '.35rem .6rem', fontSize: '.78rem' };
+
+// Esconde o meio da credencial (são dados sensíveis de contas).
+const mascarar = (s) => {
+  const t = String(s || '');
+  if (t.length <= 8) return '••••••';
+  return t.slice(0, 4) + '•'.repeat(Math.min(14, t.length - 8)) + t.slice(-4);
+};
