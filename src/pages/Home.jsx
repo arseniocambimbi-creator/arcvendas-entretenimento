@@ -6,6 +6,7 @@ import { products as fallbackProducts } from '../data/products';
 import { categories } from '../data/categories';
 import { getCatalog } from '../lib/store';
 import { discountPercent, normalize } from '../lib/format';
+import bannerImage from '../assets/banner3.png';
 
 const DEFAULT_SETTINGS = {
   hero_title: 'Recargas digitais. Simples, rápidas e em Kz.',
@@ -94,31 +95,14 @@ export default function Home() {
     <div className="animate-fade-in">
       {/* HERO */}
       {settings.banner_ativo !== false && (
-        <section className="hero">
+        <section className="hero" style={{ paddingBottom: '1rem' }}>
           <div className="container">
-            <div className="hero-grid">
-              <div>
-                <span className="hero-eyebrow"><Sparkles size={14} /> Recargas digitais · Angola</span>
-                <h1 className="hero-title">{settings.hero_title}</h1>
-                <p className="hero-subtitle">{settings.hero_subtitle}</p>
-                <div className="hero-ctas">
-                  <a href="#catalogo" className="btn-primary text-lg">Explorar recargas <ArrowRight size={18} /></a>
-                  <a href="#ofertas" className="btn-ghost text-lg">Ver ofertas</a>
-                </div>
+            <div style={{ textAlign: 'center' }}>
+              <img src={bannerImage} alt="Banner Principal" style={{ width: '100%', borderRadius: 'var(--radius-lg)', display: 'block', marginBottom: '1.5rem' }} />
+              <div className="hero-ctas" style={{ justifyContent: 'center' }}>
+                <a href="#catalogo" className="btn-primary text-lg">Explorar recargas <ArrowRight size={18} /></a>
+                <a href="#ofertas" className="btn-ghost text-lg">Ver ofertas</a>
               </div>
-              {settings.hero_image ? (
-                <img src={settings.hero_image} alt="" className="hero-banner-img" />
-              ) : (
-                <div className="hero-visual" aria-hidden="true">
-                  <div className="hero-glow" />
-                  {HERO_CARDS.map((c, i) => (
-                    <div key={c.name} className={`float-card fc-${i + 1}`}>
-                      <span className="fc-ic" style={{ background: `${c.color}22`, color: c.color }}><c.Icon size={18} /></span>
-                      <span>{c.name}<small>{c.sub}</small></span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </section>
