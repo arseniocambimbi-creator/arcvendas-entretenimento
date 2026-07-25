@@ -13,7 +13,7 @@ export const products = [
     disponibilidade: true,
     badge: "Oferta Especial",
     destaque: true,
-    estoque: 12
+    estoque: 1200
   },
   {
     id: "netflix-30-4-disp",
@@ -29,7 +29,7 @@ export const products = [
     disponibilidade: true,
     badge: "Promoção",
     destaque: true,
-    estoque: 8
+    estoque: 1200
   },
   {
     id: "unitv-2-disp",

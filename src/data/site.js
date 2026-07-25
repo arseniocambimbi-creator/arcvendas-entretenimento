@@ -14,3 +14,17 @@ export function whatsappLink(mensagem = "") {
   const base = `https://wa.me/${site.whatsapp}`;
   return mensagem ? `${base}?text=${encodeURIComponent(mensagem)}` : base;
 }
+
+// Serviços cujo pedido é feito manualmente pelo WhatsApp (entrega manual).
+const PEDIDO_WHATSAPP = /netflix|spotify/i;
+
+// True se o produto (Netflix/Spotify) deve ser pedido pelo WhatsApp.
+export function isWhatsappOrder(product) {
+  return PEDIDO_WHATSAPP.test(`${product?.name || ""} ${product?.category || ""}`);
+}
+
+// Mensagem pré-preenchida para o pedido de um produto pelo WhatsApp.
+export function pedidoWhatsappMsg(product, precoFmt = "") {
+  const preco = precoFmt ? ` — ${precoFmt}` : "";
+  return `Olá! Quero fazer um pedido na ${site.nome}:\n${product?.name || ""}${preco}\n\nEstá disponível?`;
+}

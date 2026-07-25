@@ -1,13 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Clock, MonitorSmartphone, Zap, Package } from 'lucide-react';
+import { ShoppingCart, Clock, MonitorSmartphone, Zap, Package, MessageCircle } from 'lucide-react';
 import { formatCurrency, discountPercent } from '../lib/format';
+import { isWhatsappOrder, whatsappLink, pedidoWhatsappMsg } from '../data/site';
 import BrandTile from './BrandTile';
 
 export default function ProductCard({ product }) {
   const desconto = discountPercent(product.preco_original, product.preco_promocional);
-  const estoque = product.estoque ?? 0;
-  const emEstoque = estoque > 0;
+  const whatsappOrder = isWhatsappOrder(product);
+  const isNetflix = /netflix/i.test(`${product.name} ${product.category}`);
+
+  // Netflix: estoque alto (entrega manual, praticamente ilimitado).
+  let estoque = product.estoque ?? 0;
+  if (isNetflix) estoque = Math.max(estoque, 1200);
+  // Produtos por WhatsApp são entregues manualmente — nunca ficam "esgotados".
+  const emEstoque = whatsappOrder ? true : estoque > 0;
 
   return (
     <div className="product-card">
@@ -34,7 +41,9 @@ export default function ProductCard({ product }) {
         <div className="stock-indicator" style={{ marginBottom: '0.75rem' }}>
           <Package size={14} />
           {emEstoque ? (
-            <span className="stock-available">Em stock · {estoque} disponíve{estoque === 1 ? 'l' : 'is'}</span>
+            estoque > 0
+              ? <span className="stock-available">Em stock · {estoque} disponíve{estoque === 1 ? 'l' : 'is'}</span>
+              : <span className="stock-available">Em stock</span>
           ) : (
             <span className="stock-out">Esgotado</span>
           )}
@@ -45,7 +54,16 @@ export default function ProductCard({ product }) {
           {desconto > 0 && <span className="price-original">{formatCurrency(product.preco_original)}</span>}
         </div>
 
-        {emEstoque ? (
+        {whatsappOrder ? (
+          <a
+            href={whatsappLink(pedidoWhatsappMsg(product, formatCurrency(product.preco_promocional)))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-whatsapp w-full"
+          >
+            <MessageCircle size={17} /> Pedir pelo WhatsApp
+          </a>
+        ) : emEstoque ? (
           <Link to={`/produto/${product.slug}`} className="btn-primary w-full">
             <ShoppingCart size={17} /> Comprar agora
           </Link>

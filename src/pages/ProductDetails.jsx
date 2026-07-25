@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Clock, MonitorSmartphone, ShieldCheck, ArrowLeft, Send, Loader2, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
+import { Clock, MonitorSmartphone, ShieldCheck, ArrowLeft, Send, Loader2, CheckCircle2, Copy, ExternalLink, MessageCircle } from 'lucide-react';
 import { products as fallbackProducts } from '../data/products';
 import { createCheckout, getOrderStatus, getCatalog, PAYMENT_METHODS } from '../lib/store';
 import { formatCurrency } from '../lib/format';
+import { isWhatsappOrder, whatsappLink, pedidoWhatsappMsg } from '../data/site';
 import BrandTile from '../components/BrandTile';
 
 export default function ProductDetails() {
@@ -77,6 +78,7 @@ export default function ProductDetails() {
     } catch (err) { setError(traduzErro(err.message)); setPhase('form'); }
   };
 
+  const whatsappOrder = isWhatsappOrder(product);
   const gw = order?.gateway || {};
   const ref = (gw.reference && typeof gw.reference === 'object') ? gw.reference : {};
   const checkoutUrl = gw.checkout_url || gw.url || gw.redirect_url || gw.payment_url || gw.stripe_url || ref.checkout_url;
@@ -108,13 +110,38 @@ export default function ProductDetails() {
             <h3 className="font-semibold mb-4">Informação Adicional</h3>
             <div className="info-item"><Clock className="info-icon" size={20} /><span><strong>Duração:</strong> {product.duracao}</span></div>
             <div className="info-item"><MonitorSmartphone className="info-icon" size={20} /><span><strong>Dispositivos:</strong> {product.dispositivos}</span></div>
-            <div className="info-item"><ShieldCheck className="info-icon" size={20} /><span><strong>Recarga digital</strong> — entrega automática após pagamento confirmado</span></div>
+            <div className="info-item"><ShieldCheck className="info-icon" size={20} /><span><strong>Recarga digital</strong> — {whatsappOrder ? 'pedido e entrega pelo WhatsApp' : 'entrega automática após pagamento confirmado'}</span></div>
           </div>
         </div>
 
         <div>
           <div className="checkout-form">
-            {phase === 'delivered' ? (
+            {whatsappOrder ? (
+              <div className="text-center">
+                <MessageCircle size={44} style={{ color: '#25D366', margin: '0 auto 1rem' }} />
+                <h2 className="text-2xl font-bold mb-2">Pedido pelo WhatsApp</h2>
+                <p className="text-secondary mb-6">Faz o teu pedido de <strong>{product.name}</strong> diretamente pelo WhatsApp. Respondemos rápido e combinamos o pagamento e a entrega contigo.</p>
+                <div className="glass p-4 rounded-lg mb-6" style={{ textAlign: 'left' }}>
+                  <div className="flex justify-between items-center" style={{ marginBottom: '.5rem' }}>
+                    <span className="text-secondary">Produto</span>
+                    <strong>{product.name}</strong>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-secondary">Preço</span>
+                    <span className="price-promo">{formatCurrency(product.preco_promocional)}</span>
+                  </div>
+                </div>
+                <a
+                  href={whatsappLink(pedidoWhatsappMsg(product, formatCurrency(product.preco_promocional)))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-whatsapp w-full text-lg"
+                  style={{ padding: '0.85rem' }}
+                >
+                  <MessageCircle size={20} /> Pedir pelo WhatsApp
+                </a>
+              </div>
+            ) : phase === 'delivered' ? (
               <DeliveredPanel product={product} credential={credential} channels={order?.delivery_channels} />
             ) : phase === 'pending' ? (
               <PendingPanel method={method} amount={product.preco_promocional} checkoutUrl={checkoutUrl} reference={reference} entity={entity} />
